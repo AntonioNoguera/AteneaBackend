@@ -93,5 +93,12 @@ Pendiente revisar como se puede trabajar de mejor forma el tema de permisos.
 
 ```json
 {  
+type: "file" | "theme",
+content: {
+		name: "",
+		fileType: "",
+		size: ""
+	}
+
 }
 ```
