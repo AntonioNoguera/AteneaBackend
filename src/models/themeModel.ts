@@ -2,7 +2,6 @@ import { pool } from '../config/database';
 
 export interface Theme {
   id?: number;
-  content: string; 
-
+  content: string;  
   addedAt: string;
 }
