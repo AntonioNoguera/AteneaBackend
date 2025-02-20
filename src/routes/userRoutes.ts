@@ -3,6 +3,7 @@ import { getUsers, getUserById, createUser, updateUser, deleteUser } from "../co
 
 const router = Router();
 
+// Users
 router.get("/", getUsers);
 router.get("/:id", getUserById);
 router.post("/", createUser);
