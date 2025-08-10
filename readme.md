@@ -20,9 +20,14 @@ Pendiente revisar como se puede trabajar de mejor forma el tema de permisos.
 	fullName: "",
 	passwordHash: "",
 	passwordSalt: "",
-	createdAt: TimeStamp
+	createdAt: TimeStamp,
+	persmissions: ""?
 }
 ```
+
+permissions: [
+
+]
 
 ## Departamento
 
@@ -41,7 +46,7 @@ Pendiente revisar como se puede trabajar de mejor forma el tema de permisos.
 {
 	id: 0,
 	name: "",
-	parentDepartment: ParentEntity,
+	parentDepartment: DeparmentEntity,
 	lastModification: TimeStamp,
 	lastContributor: UserEntity,
 }
@@ -63,7 +68,6 @@ Pendiente revisar como se puede trabajar de mejor forma el tema de permisos.
 				count: 0,
 				data: "Theme 1"
 			},
-			
 			{
 				count: 0,
 				data: "Theme 1"
