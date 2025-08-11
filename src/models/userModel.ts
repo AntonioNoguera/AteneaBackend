@@ -1,4 +1,4 @@
-import { pool } from '../config/database';
+//userModel.ts
 
 export interface User {
   id?: number;
@@ -6,13 +6,4 @@ export interface User {
   email: string;
   password: string;
 }
-
-export const getAllUsers = async (): Promise<User[]> => {
-  const [rows] = await pool.query('SELECT * FROM users');
-  return rows as User[];
-};
-
-export const createUser = async (user: User) => {
-  const [result] = await pool.query('INSERT INTO users SET ?', user);
-  return result;
-};
+ 
