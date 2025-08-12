@@ -6,10 +6,12 @@ import { getUsers, getUserById, createUser, updateUser, deleteUser } from "../co
 const router = Router();
 
 // Users
-router.get("/", getUsers);
-router.get("/:id", getUserById);
-router.post("/", createUser);
-router.put("/:id", updateUser);
-router.delete("/:id", deleteUser);
+let userRoute: string = "user";
+
+router.get(`/${userRoute}`, getUsers);
+router.post(`/${userRoute}`, createUser);
+router.get(`/${userRoute}/:id`, getUserById); 
+router.put(`/${userRoute}/:id`, updateUser);
+router.delete(`/${userRoute}/:id`, deleteUser);
 
 export default router;
