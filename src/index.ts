@@ -9,6 +9,7 @@ import departmentRoutes from './routes/departmentRoutes';
 import authRoutes from './routes/authRoutes'
 
 import { errorHandler } from "./middleware/errorHandler";
+import { authMiddleware } from './middleware/auth';
  
 dotenv.config();
 
@@ -18,9 +19,11 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+app.use('/api', authRoutes); //Endpoints sin validación
+
+app.use('/api', authMiddleware);
 app.use('/api', userRoutes); 
-app.use('/api', departmentRoutes);
-app.use("/api", authRoutes);
+app.use('/api', departmentRoutes); 
 
 app.use(errorHandler);
 
