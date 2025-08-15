@@ -5,8 +5,9 @@ import * as dotenv from 'dotenv';
 import cors = require('cors'); 
  
 import userRoutes from './routes/userRoutes';
-import departmentRoutes from './routes/departmentRoutes';
 import authRoutes from './routes/authRoutes'
+import departmentRoutes from './routes/departmentRoutes'; 
+import academyRoutes from './routes/academyRoutes'
 
 import { errorHandler } from "./middleware/errorHandler";
 import { authMiddleware } from './middleware/auth';
@@ -24,6 +25,7 @@ app.use('/api', authRoutes); //Endpoints sin validación
 app.use('/api', authMiddleware);
 app.use('/api', userRoutes); 
 app.use('/api', departmentRoutes); 
+app.use('/api', academyRoutes);
 
 app.use(errorHandler);
 

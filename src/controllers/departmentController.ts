@@ -1,6 +1,7 @@
 // src/controllers/departmentController.ts
 import { RequestHandler } from "express";
 import prisma from "../prisma/prismaClient";
+import { AuthRequest } from "../middleware/auth";
 
 // GET /api/department
 export const getDepartments: RequestHandler = async (_req, res): Promise<void> => {
@@ -43,24 +44,30 @@ export const getDepartmentById: RequestHandler = async (req, res): Promise<void>
 };
 
 // POST /api/department
-export const createDepartment: RequestHandler = async (req, res): Promise<void> => {
-  const { name, lastContributorId } = req.body as { name?: string; lastContributorId?: number };
+export const createDepartment: RequestHandler = async (req, res): Promise<void> => { 
 
-  if (typeof name !== "string" || !name.trim().length || !Number.isInteger(Number(lastContributorId))) {
-    res.status(400).json({ error: "name y lastContributorId son requeridos" });
+  const { name } = req.body as { name?: string };
+  const userId = (req as AuthRequest).userId;
+
+  if (typeof name !== "string" || !name.trim().length) {
+    res.status(400).json({error: "name is required"});
     return;
+  }
+
+  if (!userId || !Number.isInteger(userId) ) {
+    res.status(400).json({error: "Unauth user"})
   }
 
   try {
     const created = await prisma.department.create({
-      data: { name: name.trim(), lastContributorId: Number(lastContributorId) },
+      data: { name: name.trim(), lastContributorId: Number(userId) },
       include: { lastContributor: { select: { id: true, name: true, email: true } } }
     });
     res.status(201).json(created);
     return;
   } catch (e: any) {
     if (e?.code === "P2003") { // FK inválida
-      res.status(400).json({ error: "lastContributorId no existe en user" });
+      res.status(400).json({ error: "Usuario autenticado inválido" });
       return;
     }
     res.status(500).json({ error: "Error al crear departamento" });
@@ -70,23 +77,25 @@ export const createDepartment: RequestHandler = async (req, res): Promise<void> 
 
 // PUT /api/department/:id
 export const updateDepartment: RequestHandler = async (req, res): Promise<void> => {
-  const idNum = Number(req.params.id);
+  const idNum = Number(req.params.id); 
+  const userId = (req as AuthRequest).userId;
+
   if (!Number.isInteger(idNum)) {
     res.status(400).json({ error: "ID inválido" });
     return;
   }
 
-  const { name, lastContributorId } = req.body as { name?: string; lastContributorId?: number };
+  const { name } = req.body as { name?: string; };
   const data: Record<string, unknown> = {};
 
   if (typeof name === "string") data.name = name.trim();
-  if (typeof lastContributorId !== "undefined") {
-    if (!Number.isInteger(Number(lastContributorId))) {
-      res.status(400).json({ error: "lastContributorId inválido" });
-      return;
-    }
-    data.lastContributorId = Number(lastContributorId);
+
+  if (!userId || !Number.isInteger(userId) ) { 
+    res.status(400).json({ error: "lastContributorId inválido" });
+    return;
   }
+
+  data.lastContributorId = Number(userId);
 
   try {
     const updated = await prisma.department.update({
