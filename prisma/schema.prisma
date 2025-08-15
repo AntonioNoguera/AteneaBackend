@@ -15,7 +15,9 @@ model user {
   role      user_role @default(USER)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
   departmentsModified department[]
+  academiesContributed academy[]
 }
 
 enum user_role {
@@ -29,5 +31,19 @@ model department {
   name              String
   lastModification  DateTime @updatedAt 
   lastContributor   user     @relation(fields: [lastContributorId], references: [id])
+  lastContributorId Int
+
+  academies         academy[]
+}
+
+model academy {
+  id               Int        @id @default(autoincrement())
+  name             String
+  parentDepartmentId Int
+  parentDepartment department @relation(fields: [parentDepartmentId], references: [id], onDelete: Cascade)
+   
+
+  lastModification DateTime   @updatedAt
+  lastContributor  user       @relation(fields: [lastContributorId], references: [id])
   lastContributorId Int
 }
