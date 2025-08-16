@@ -2,12 +2,14 @@
 
 import * as express from 'express';
 import * as dotenv from 'dotenv';
+
 import cors = require('cors'); 
  
 import userRoutes from './routes/userRoutes';
-import authRoutes from './routes/authRoutes'
+import authRoutes from './routes/authRoutes';
 import departmentRoutes from './routes/departmentRoutes'; 
-import academyRoutes from './routes/academyRoutes'
+import academyRoutes from './routes/academyRoutes';
+import subjectRoutes from './routes/subjectRoutes';
 
 import { errorHandler } from "./middleware/errorHandler";
 import { authMiddleware } from './middleware/auth';
@@ -20,12 +22,13 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-app.use('/api', authRoutes); //Endpoints sin validación
+app.use('/v1', authRoutes); //Endpoints sin validación
 
-app.use('/api', authMiddleware);
-app.use('/api', userRoutes); 
-app.use('/api', departmentRoutes); 
-app.use('/api', academyRoutes);
+app.use('/v1', authMiddleware);
+app.use('/v1', userRoutes); 
+app.use('/v1', departmentRoutes); 
+app.use('/v1', academyRoutes);
+app.use('/v1', subjectRoutes);
 
 app.use(errorHandler);
 

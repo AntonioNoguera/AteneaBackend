@@ -57,52 +57,43 @@ permissions: [
 ```json
 {
 	id: 0,
-	name: 
+	name: ""
 	parentAcademy: AcademyEntity,
-	plan: ENUM, 
+	plan: ENUM, // 401, 402, 4040
 	lastModification: TimeStamp,
 	lastContributor: UserEntity,
 	dataInfo: {
 		halfTerm: [
 			{
-				count: 0,
-				data: "Theme 1"
-			},
-			{
-				count: 0,
+				position: 0,
 				data: "Theme 1"
 			}, 
 		], 
 		ordinary: {
 			{
-				count: 0,
-				data: "Theme 1"
-			},
-			{
-				count: 0,
+				position: 0,
 				data: "Theme 1"
 			}, 
 		},
 		files: [
 			{
-				id: 0,
-				name: "", 
+				ResourcesEntity
 			}
 		]
 	} 
 }
 ```
 
-## Resources
+## ResourcesEntity
 
 ```json
-{  
-type: "file" | "theme",
-content: {
-		name: "",
-		fileType: "",
-		size: ""
-	}
+{   
+ {
+	name: "",
+	fileType: "",
+	content: "",
+	size: ""
+}
 
 }
 ```

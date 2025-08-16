@@ -5,7 +5,6 @@ import { getUsers, getUserById, createUser, updateUser, deleteUser } from "../co
 
 const router = Router();
 
-// Users
 let userRoute: string = "user";
 
 router.get(`/${userRoute}`, getUsers);

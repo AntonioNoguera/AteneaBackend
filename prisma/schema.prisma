@@ -7,6 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//Enums
+enum subject_plan {
+  P401  @map("401")
+  P402  @map("402")
+  P4040 @map("4040")
+}
+
+enum user_role {
+  ADMIN
+  EDITOR
+  USER
+}
+
 model user {
   id        Int    @id @default(autoincrement())
   name      String
@@ -18,12 +31,7 @@ model user {
 
   departmentsModified department[]
   academiesContributed academy[]
-}
-
-enum user_role {
-  ADMIN
-  EDITOR
-  USER
+  subjectsContributed   subject[]
 }
 
 model department {
@@ -42,8 +50,33 @@ model academy {
   parentDepartmentId Int
   parentDepartment department @relation(fields: [parentDepartmentId], references: [id], onDelete: Cascade)
    
-
   lastModification DateTime   @updatedAt
   lastContributor  user       @relation(fields: [lastContributorId], references: [id])
   lastContributorId Int
+
+  subjects            subject[]
+}
+
+model subject {
+  id                 Int          @id @default(autoincrement())
+  name               String
+  parentAcademy      academy      @relation(fields: [parentAcademyId], references: [id])
+  parentAcademyId    Int
+  plan               subject_plan
+  subjectInfo        Json?        // guarda halfTerm, ordinary, files como JSON opcional
+  lastModification   DateTime     @updatedAt
+  lastContributor    user         @relation(fields: [lastContributorId], references: [id])
+  lastContributorId  Int
+
+  resources          resource[]
+}
+
+model resource {
+  id          Int      @id @default(autoincrement())
+  name        String
+  fileType    String
+  content     String
+  size        String
+  subject     subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  subjectId   Int
 }
