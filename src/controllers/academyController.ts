@@ -58,13 +58,13 @@ export const createAcademy: RequestHandler = async (req, res): Promise<void> => 
 
   const userId = (req as AuthRequest).userId;
 
-  if (typeof name !== "string" || !name.trim().length || !Number.isInteger(Number(parentDepartmentId))) {
-    res.status(400).json({ error: "name y parentDepartmentId son requeridos" });
+  if (typeof userId !== "number" || !Number.isInteger(userId)) {
+    res.status(401).json({ error: "No autenticado" });
     return;
   }
 
-  if (typeof userId !== "number" || !Number.isInteger(userId)) {
-    res.status(401).json({ error: "No autenticado" });
+  if (typeof name !== "string" || !name.trim().length || !Number.isInteger(Number(parentDepartmentId))) {
+    res.status(400).json({ error: "name y parentDepartmentId son requeridos" });
     return;
   }
 
