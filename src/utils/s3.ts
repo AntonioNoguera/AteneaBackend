@@ -17,23 +17,3 @@ export const s3 = new S3Client({
 
   
 });
-
-
-
-// Verifica que las credenciales funcionan
-async function verifyS3() {
-  try {
-    // 1. Lista buckets de la cuenta
-    const buckets = await s3.send(new ListBucketsCommand({}));
-    console.log("✅ Buckets disponibles:", buckets.Buckets?.map(b => b.Name));
-
-    // 2. Chequea acceso al bucket específico
-    const bucketName = "atenea-files-mike";
-    await s3.send(new HeadBucketCommand({ Bucket: bucketName }));
-    console.log(`✅ Acceso correcto al bucket: ${bucketName}`);
-  } catch (err) {
-    console.error("❌ Error verificando S3:", err);
-  }
-}
-
-verifyS3();

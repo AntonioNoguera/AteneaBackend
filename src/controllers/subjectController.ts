@@ -1,3 +1,4 @@
+// src/controllers/subjectController.ts
 import { RequestHandler } from "express";
 import prisma from "../prisma/prismaClient";
 import { AuthRequest } from "../middleware/auth";

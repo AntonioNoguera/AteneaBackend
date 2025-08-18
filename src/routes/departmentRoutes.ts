@@ -1,3 +1,4 @@
+// src/routes/departmentRoutes.ts
 import { Router } from "express";
 
 import {

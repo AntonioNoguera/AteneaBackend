@@ -1,6 +1,6 @@
+// src/controllers/authController.ts
 import { RequestHandler } from "express";
 import prisma from "../prisma/prismaClient";
-import * as bcrypt from "bcrypt";
 import { signAccessToken } from "../utils/JWT";
 
 export const login: RequestHandler = async (req, res): Promise<void> => {

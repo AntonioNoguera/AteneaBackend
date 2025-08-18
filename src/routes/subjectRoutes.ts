@@ -1,3 +1,4 @@
+// src/routes/subjectRoutes.ts
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth";
 import {

@@ -1,12 +1,22 @@
+// src/routes/fileRoutes.ts
 import { Router } from "express";
 import * as multer from "multer";
-import { uploadFile } from "../controllers/fileController";
-import { checkS3Connection } from "../controllers/s3Controller";
+import {
+  uploadSubjectResource,
+  getResourceSignedUrl,
+  deleteResource
+} from "../controllers/fileController";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.post("/file", upload.single("file"), uploadFile);
-router.get("/check", checkS3Connection);
+// subir archivo a una materia
+router.post("/subject/:id/resource", upload.single("file"), uploadSubjectResource);
+
+// obtener URL firmada para descargar/ver
+router.get("/resource/:id/url", getResourceSignedUrl);
+
+// eliminar recurso
+router.delete("/resource/:id", deleteResource);
 
 export default router;

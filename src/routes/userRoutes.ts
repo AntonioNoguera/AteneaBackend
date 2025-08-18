@@ -1,4 +1,4 @@
-//UserRoutes.ts
+// src/routes/userRoutes.ts
 
 import { Router } from "express";
 import { getUsers, getUserById, createUser, updateUser, deleteUser } from "../controllers/userController";

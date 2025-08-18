@@ -1,5 +1,4 @@
-//index.ts
-
+// src/index.ts
 import * as express from 'express';
 import * as dotenv from 'dotenv';
 
@@ -31,7 +30,7 @@ app.use('/v1', userRoutes);
 app.use('/v1', departmentRoutes); 
 app.use('/v1', academyRoutes);
 app.use('/v1', subjectRoutes);
- 
+app.use('/v1', fileRoutes);
 
 app.use(errorHandler);
 
