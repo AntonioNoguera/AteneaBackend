@@ -10,7 +10,7 @@ export const authMiddleware: RequestHandler = (req, res, next): void => {
   const auth = req.headers.authorization;
 
   if (!auth?.startsWith("Bearer ")) {
-    res.status(401).json({ error: "Token no proporcionado" });
+    res.status(401).json({ error: "No token" });
     return;
   }
 
@@ -18,13 +18,13 @@ export const authMiddleware: RequestHandler = (req, res, next): void => {
   try {
     const decoded = verifyAccessToken(token);
     if (!decoded.userId || Number.isNaN(decoded.userId)) {
-      res.status(401).json({ error: "Token inválido" });
+      res.status(401).json({ error: "Invalid token" });
       return;
     }
     (req as AuthRequest).userId = decoded.userId;
-    next(); // importante: no devolver nada
+    next();
   } catch {
-    res.status(401).json({ error: "Token inválido o expirado" });
+    res.status(401).json({ error: "Unauthorized" });
     return;
   }
 };

@@ -6,11 +6,17 @@ import { AuthRequest } from "../middleware/auth";
 // GET /api/department
 export const getDepartments: RequestHandler = async (_req, res): Promise<void> => {
   try {
-    const items = await prisma.department.findMany({
-      include: { lastContributor: { select: { id: true, name: true, email: true } } },
-      orderBy: { id: "asc" }
+    const rows = await prisma.department.findMany({
+      select: {
+        id: true,
+        name: true,
+        lastModification: true,
+        lastContributor: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { id: "asc" },
     });
-    res.json(items);
+
+    res.json(rows.map(shapeDepartment));
     return;
   } catch {
     res.status(500).json({ error: "Error al obtener departamentos" });
@@ -28,14 +34,21 @@ export const getDepartmentById: RequestHandler = async (req, res): Promise<void>
 
   try {
     const item = await prisma.department.findUnique({
-      where: { id: idNum },
-      include: { lastContributor: { select: { id: true, name: true, email: true } } }
+      where: { id: idNum }, 
+      select: {
+        id: true,
+        name: true,
+        lastModification: true,
+        lastContributor: { select: { id: true, name: true, email: true } },
+      },
     });
+
     if (!item) {
       res.status(404).json({ error: "Departamento no encontrado" });
       return;
     }
-    res.json(item);
+
+    res.json(shapeDepartment(item));
     return;
   } catch {
     res.status(500).json({ error: "Error al obtener departamento" });
@@ -43,67 +56,81 @@ export const getDepartmentById: RequestHandler = async (req, res): Promise<void>
   }
 };
 
-// POST /api/department
-export const createDepartment: RequestHandler = async (req, res): Promise<void> => { 
-
+// POST /api/department 
+export const createDepartment: RequestHandler = async (req, res): Promise<void> => {
   const { name } = req.body as { name?: string };
   const userId = (req as AuthRequest).userId;
 
-  if (typeof name !== "string" || !name.trim().length) {
-    res.status(400).json({error: "name is required"});
+  if (typeof name !== "string" || !name.trim()) {
+    res.status(400).json({ error: "name requerido" });
     return;
   }
 
-  if (!userId || !Number.isInteger(userId) ) {
-    res.status(400).json({error: "Unauth user"})
+  if (!userId) {
+    res.status(401).json({ error: "No autenticado" });
+    return;
   }
 
   try {
     const created = await prisma.department.create({
-      data: { name: name.trim(), lastContributorId: Number(userId) },
-      include: { lastContributor: { select: { id: true, name: true, email: true } } }
+      data: {
+        name: name.trim(),
+        lastContributor: { connect: { id: userId } },
+      },
+      select: {
+        id: true,
+        name: true,
+        lastModification: true,
+        lastContributor: { select: { id: true, name: true, email: true } },
+      },
     });
-    res.status(201).json(created);
+
+    res.status(201).json(shapeDepartment(created));
     return;
   } catch (e: any) {
-    if (e?.code === "P2003") { // FK inválida
-      res.status(400).json({ error: "Usuario autenticado inválido" });
+    if (e?.code === "P2003") {
+      res.status(400).json({ error: "lastContributor inválido" });
       return;
     }
     res.status(500).json({ error: "Error al crear departamento" });
     return;
   }
 };
-
+ 
 // PUT /api/department/:id
 export const updateDepartment: RequestHandler = async (req, res): Promise<void> => {
-  const idNum = Number(req.params.id); 
-  const userId = (req as AuthRequest).userId;
+  const idNum = Number(req.params.id);
+  const { name } = req.body as { name?: string };
 
   if (!Number.isInteger(idNum)) {
     res.status(400).json({ error: "ID inválido" });
     return;
   }
-
-  const { name } = req.body as { name?: string; };
-  const data: Record<string, unknown> = {};
-
-  if (typeof name === "string") data.name = name.trim();
-
-  if (!userId || !Number.isInteger(userId) ) { 
-    res.status(400).json({ error: "lastContributorId inválido" });
+  if (typeof name !== "string" || !name.trim()) {
+    res.status(400).json({ error: "name requerido" });
     return;
   }
 
-  data.lastContributorId = Number(userId);
+  // si quieres registrar quién modificó:
+  const userId = (req as AuthRequest).userId;
 
   try {
     const updated = await prisma.department.update({
       where: { id: idNum },
-      data,
-      include: { lastContributor: { select: { id: true, name: true, email: true } } }
+      data: {
+        name: name.trim(),
+        ...(userId ? { lastContributor: { connect: { id: userId } } } : {}),
+      },
+      // respuesta con el mismo formato que GET (sin lastContributorId)
+      select: {
+        id: true,
+        name: true,
+        lastModification: true, // se actualizará automáticamente por @updatedAt
+        lastContributor: { select: { id: true, name: true, email: true } },
+      },
     });
-    res.json(updated);
+
+    res.json(shapeDepartment(updated));
     return;
   } catch (e: any) {
     if (e?.code === "P2025") {
@@ -111,7 +138,7 @@ export const updateDepartment: RequestHandler = async (req, res): Promise<void> 
       return;
     }
     if (e?.code === "P2003") {
-      res.status(400).json({ error: "lastContributorId no existe en user" });
+      res.status(400).json({ error: "lastContributorId inválido" });
       return;
     }
     res.status(500).json({ error: "Error al actualizar departamento" });
@@ -140,3 +167,22 @@ export const deleteDepartment: RequestHandler = async (req, res): Promise<void> 
     return;
   }
 };
+
+//Formatters
+type DeptRow = {
+  id: number;
+  name: string;
+  lastModification: Date;
+  lastContributor: { id: number; name: string; email: string };
+};
+
+function shapeDepartment(row: DeptRow) {
+  const { lastModification, ...rest } = row;
+  return {
+    ...rest,
+    lastContributor: {
+      ...row.lastContributor,
+      modifiedAt: lastModification,
+    },
+  };
+}

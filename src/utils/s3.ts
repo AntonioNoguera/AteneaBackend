@@ -13,7 +13,4 @@ export const s3 = new S3Client({
     accessKeyId: ACCESS_KEY,
     secretAccessKey: SECRET_KEY,
   },
-  
-
-  
 });
