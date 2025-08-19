@@ -65,7 +65,7 @@ model subject {
   parentAcademy      academy      @relation(fields: [parentAcademyId], references: [id])
   parentAcademyId    Int
   plan               subject_plan
-  subjectInfo        Json?        // guarda halfTerm, ordinary, files como JSON opcional
+  subjectInfo        Json?        // guarda halfTerm, ordinary
   lastModification   DateTime     @updatedAt
   lastContributor    user         @relation(fields: [lastContributorId], references: [id])
   lastContributorId  Int
