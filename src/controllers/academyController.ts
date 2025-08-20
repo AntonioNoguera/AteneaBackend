@@ -8,12 +8,12 @@ export const getAcademies: RequestHandler = async (_req, res): Promise<void> => 
   try {
     const items = await prisma.academy.findMany({
       include: {
-        parentDepartment: { select: { id: true, name: true } },
+        // parentDepartment: { select: { id: true, name: true } },
         lastContributor: { select: { id: true, name: true, email: true } },
       },
       orderBy: { id: "asc" },
     });
-    res.json(items);
+    res.json(items.map(shapeAcademy));
     return;
   } catch {
     res.status(500).json({ error: "Error al obtener academies" });
@@ -21,30 +21,29 @@ export const getAcademies: RequestHandler = async (_req, res): Promise<void> => 
   }
 };
 
-// GET /api/academy/:id
-export const getAcademyById: RequestHandler = async (req, res): Promise<void> => {
-  const idNum = Number(req.params.id);
-  if (!Number.isInteger(idNum)) {
-    res.status(400).json({ error: "ID inválido" });
+// GET /api/academy/by-department/:departmentId
+export const getAcademiesByDepartment: RequestHandler = async (req, res): Promise<void> => {
+  const departmentIdNum = Number(req.params.departmentId);
+  
+  if (!Number.isInteger(departmentIdNum)) {
+    res.status(400).json({ error: "Department ID inválido" });
     return;
   }
 
   try {
-    const item = await prisma.academy.findUnique({
-      where: { id: idNum },
+    const academies = await prisma.academy.findMany({
+      where: { parentDepartmentId: departmentIdNum },
       include: {
-        parentDepartment: { select: { id: true, name: true } },
+        // parentDepartment: { select: { id: true, name: true } },
         lastContributor: { select: { id: true, name: true, email: true } },
       },
+      orderBy: { id: "asc" },
     });
-    if (!item) {
-      res.status(404).json({ error: "Academy no encontrada" });
-      return;
-    }
-    res.json(item);
+
+    res.json(academies.map(shapeAcademy));
     return;
   } catch {
-    res.status(500).json({ error: "Error al obtener academy" });
+    res.status(500).json({ error: "Error al obtener academias por departamento" });
     return;
   }
 };
@@ -76,11 +75,11 @@ export const createAcademy: RequestHandler = async (req, res): Promise<void> => 
         lastContributor: { connect: { id: userId } },
       },
       include: {
-        parentDepartment: { select: { id: true, name: true } },
+        // parentDepartment: { select: { id: true, name: true } },
         lastContributor: { select: { id: true, name: true, email: true } },
       },
     });
-    res.status(201).json(created);
+    res.status(201).json(shapeAcademy(created));
     return;
   } catch (e: any) {
     if (e?.code === "P2003") {
@@ -118,11 +117,11 @@ export const updateAcademy: RequestHandler = async (req, res): Promise<void> => 
       where: { id: idNum },
       data,
       include: {
-        parentDepartment: { select: { id: true, name: true } },
+        // parentDepartment: { select: { id: true, name: true } },
         lastContributor: { select: { id: true, name: true, email: true } },
       },
     });
-    res.json(updated);
+    res.json(shapeAcademy(updated));
     return;
   } catch (e: any) {
     if (e?.code === "P2025") {
@@ -159,3 +158,61 @@ export const deleteAcademy: RequestHandler = async (req, res): Promise<void> => 
     return;
   }
 };
+
+// Tipos para el formateador
+type AcademyRow = {
+  id: number;
+  name: string;
+  parentDepartmentId: number;
+  lastModification: Date;
+  lastContributorId: number;
+  // parentDepartment: { id: number; name: string };
+  lastContributor: { id: number; name: string; email: string };
+};
+
+// Formateador para Academy
+function shapeAcademy(row: AcademyRow) {
+  const { lastModification, parentDepartmentId, lastContributorId, ...rest } = row;
+  return {
+    id: rest.id,
+    name: rest.name,
+    // parentDepartment: {
+    //   id: rest.parentDepartment.id,
+    //   name: rest.parentDepartment.name,
+    // },
+    lastContributor: {
+      id: rest.lastContributor.id,
+      name: rest.lastContributor.name,
+      email: rest.lastContributor.email,
+      modifiedAt: lastModification,
+    },
+  };
+} 
+
+// // GET /api/academy/:id
+// export const getAcademyById: RequestHandler = async (req, res): Promise<void> => {
+//   const idNum = Number(req.params.id);
+//   if (!Number.isInteger(idNum)) {
+//     res.status(400).json({ error: "ID inválido" });
+//     return;
+//   }
+
+//   try {
+//     const item = await prisma.academy.findUnique({
+//       where: { id: idNum },
+//       include: {
+//         parentDepartment: { select: { id: true, name: true } },
+//         lastContributor: { select: { id: true, name: true, email: true } },
+//       },
+//     });
+//     if (!item) {
+//       res.status(404).json({ error: "Academy no encontrada" });
+//       return;
+//     }
+//     res.json(item);
+//     return;
+//   } catch {
+//     res.status(500).json({ error: "Error al obtener academy" });
+//     return;
+//   }
+// };

@@ -3,7 +3,7 @@ import { Router } from "express";
 
 import {
   getAcademies,
-  getAcademyById,
+  getAcademiesByDepartment,
   createAcademy,
   updateAcademy,
   deleteAcademy,
@@ -13,7 +13,7 @@ const router = Router();
 const base = "academy";
 
 router.get(`/${base}`, getAcademies);
-router.get(`/${base}/:id`, getAcademyById);
+router.get(`/${base}/:departmentId`, getAcademiesByDepartment);
 router.post(`/${base}`, createAcademy);
 router.put(`/${base}/:id`, updateAcademy);
 router.delete(`/${base}/:id`, deleteAcademy);
