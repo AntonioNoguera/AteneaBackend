@@ -2,6 +2,7 @@
 import { RequestHandler } from "express";
 import prisma from "../prisma/prismaClient";
 import { AuthRequest } from "../middleware/auth";
+import { shapeAcademy } from "./academyController";
 
 // GET /api/department
 export const getDepartments: RequestHandler = async (_req, res): Promise<void> => {
@@ -40,6 +41,17 @@ export const getDepartmentById: RequestHandler = async (req, res): Promise<void>
         name: true,
         lastModification: true,
         lastContributor: { select: { id: true, name: true, email: true } },
+        academies: {
+          select: {
+            id: true,
+            name: true,
+            parentDepartmentId: true,
+            lastModification: true,
+            lastContributorId: true,
+            lastContributor: { select: { id: true, name: true, email: true } },
+          },
+          orderBy: { id: "asc" },
+        },
       },
     });
 
@@ -48,7 +60,28 @@ export const getDepartmentById: RequestHandler = async (req, res): Promise<void>
       return;
     }
 
-    res.json(shapeDepartment(item));
+    // Formatear el department y sus academies
+    const formattedDepartment = shapeDepartment({
+      id: item.id,
+      name: item.name,
+      lastModification: item.lastModification,
+      lastContributor: item.lastContributor,
+    });
+
+    // Formatear las academies usando la función shapeAcademy
+    const formattedAcademies = item.academies.map(academy => shapeAcademy({
+      id: academy.id,
+      name: academy.name,
+      parentDepartmentId: academy.parentDepartmentId,
+      lastModification: academy.lastModification,
+      lastContributorId: academy.lastContributorId,
+      lastContributor: academy.lastContributor,
+    }));
+
+    res.json({
+      ...formattedDepartment,
+      academies: formattedAcademies,
+    });
     return;
   } catch {
     res.status(500).json({ error: "Error al obtener departamento" });

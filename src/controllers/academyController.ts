@@ -171,7 +171,7 @@ type AcademyRow = {
 };
 
 // Formateador para Academy
-function shapeAcademy(row: AcademyRow) {
+export function shapeAcademy(row: AcademyRow) {
   const { lastModification, parentDepartmentId, lastContributorId, ...rest } = row;
   return {
     id: rest.id,
