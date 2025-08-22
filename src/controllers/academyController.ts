@@ -7,8 +7,7 @@ import { AuthRequest } from "../middleware/auth";
 export const getAcademies: RequestHandler = async (_req, res): Promise<void> => {
   try {
     const items = await prisma.academy.findMany({
-      include: {
-        // parentDepartment: { select: { id: true, name: true } },
+      include: { 
         lastContributor: { select: { id: true, name: true, email: true } },
       },
       orderBy: { id: "asc" },
@@ -34,7 +33,6 @@ export const getAcademiesByDepartment: RequestHandler = async (req, res): Promis
     const academies = await prisma.academy.findMany({
       where: { parentDepartmentId: departmentIdNum },
       include: {
-        // parentDepartment: { select: { id: true, name: true } },
         lastContributor: { select: { id: true, name: true, email: true } },
       },
       orderBy: { id: "asc" },
@@ -74,8 +72,7 @@ export const createAcademy: RequestHandler = async (req, res): Promise<void> => 
         parentDepartment: { connect: { id: Number(parentDepartmentId) } },
         lastContributor: { connect: { id: userId } },
       },
-      include: {
-        // parentDepartment: { select: { id: true, name: true } },
+      include: { 
         lastContributor: { select: { id: true, name: true, email: true } },
       },
     });
@@ -116,8 +113,7 @@ export const updateAcademy: RequestHandler = async (req, res): Promise<void> => 
     const updated = await prisma.academy.update({
       where: { id: idNum },
       data,
-      include: {
-        // parentDepartment: { select: { id: true, name: true } },
+      include: { 
         lastContributor: { select: { id: true, name: true, email: true } },
       },
     });
@@ -165,8 +161,7 @@ type AcademyRow = {
   name: string;
   parentDepartmentId: number;
   lastModification: Date;
-  lastContributorId: number;
-  // parentDepartment: { id: number; name: string };
+  lastContributorId: number; 
   lastContributor: { id: number; name: string; email: string };
 };
 
@@ -175,11 +170,7 @@ export function shapeAcademy(row: AcademyRow) {
   const { lastModification, parentDepartmentId, lastContributorId, ...rest } = row;
   return {
     id: rest.id,
-    name: rest.name,
-    // parentDepartment: {
-    //   id: rest.parentDepartment.id,
-    //   name: rest.parentDepartment.name,
-    // },
+    name: rest.name, 
     lastContributor: {
       id: rest.lastContributor.id,
       name: rest.lastContributor.name,
@@ -189,30 +180,71 @@ export function shapeAcademy(row: AcademyRow) {
   };
 } 
 
-// // GET /api/academy/:id
-// export const getAcademyById: RequestHandler = async (req, res): Promise<void> => {
-//   const idNum = Number(req.params.id);
-//   if (!Number.isInteger(idNum)) {
-//     res.status(400).json({ error: "ID inválido" });
-//     return;
-//   }
+export const getAcademyById: RequestHandler = async (req, res): Promise<void> => {
+  const idNum = Number(req.params.id);
+  if (!Number.isInteger(idNum)) {
+    res.status(400).json({ error: "ID inválido" });
+    return;
+  }
 
-//   try {
-//     const item = await prisma.academy.findUnique({
-//       where: { id: idNum },
-//       include: {
-//         parentDepartment: { select: { id: true, name: true } },
-//         lastContributor: { select: { id: true, name: true, email: true } },
-//       },
-//     });
-//     if (!item) {
-//       res.status(404).json({ error: "Academy no encontrada" });
-//       return;
-//     }
-//     res.json(item);
-//     return;
-//   } catch {
-//     res.status(500).json({ error: "Error al obtener academy" });
-//     return;
-//   }
-// };
+  try {
+    const item = await prisma.academy.findUnique({
+      where: { id: idNum },
+      include: {
+        lastContributor: { select: { id: true, name: true, email: true } },
+        subjects: {
+          select: {
+            id: true,
+            name: true,
+            plan: true, 
+            lastModification: true, 
+          },
+          orderBy: { id: "asc" },
+        },
+      },
+    });
+
+    if (!item) {
+      res.status(404).json({ error: "Academy no encontrada" });
+      return;
+    }
+
+    res.json(shapeAcademyWithSubjects(item));
+    return;
+  } catch {
+    res.status(500).json({ error: "Error al obtener academy" });
+    return;
+  }
+};
+
+// Tipo para Academy con subjects
+type AcademyWithSubjects = AcademyRow & {
+  subjects: Array<{
+    id: number;
+    name: string;
+    plan: string; 
+    lastModification: Date; 
+  }>;
+};
+
+// Formateador para Academy con subjects
+export function shapeAcademyWithSubjects(row: AcademyWithSubjects) {
+  const { lastModification, parentDepartmentId, lastContributorId, subjects, ...rest } = row;
+  
+  return {
+    id: rest.id,
+    name: rest.name,
+    lastContributor: {
+      id: rest.lastContributor.id,
+      name: rest.lastContributor.name,
+      email: rest.lastContributor.email,
+      modifiedAt: lastModification,
+    },
+    subjects: subjects.map(subject => ({
+      id: subject.id,
+      name: subject.name,
+      plan: subject.plan,
+      lastModification: subject.lastModification, 
+    })),
+  };
+}

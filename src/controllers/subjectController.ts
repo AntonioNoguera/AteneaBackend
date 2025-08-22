@@ -12,26 +12,22 @@ function toPlanEnum(input?: string) {
     return undefined;
 }
 
-// GET /api/subject
-export const getSubjects: RequestHandler = async (_req, res): Promise<void> => {
-
-    const userId = (_req as AuthRequest).userId;
-    if (!userId || !Number.isInteger(userId)) { res.status(401).json({ error: "No autenticado" }); return; }
-
-    try {
-        const rows = await prisma.subject.findMany({
-            include: {
-                parentAcademy: { select: { id: true, name: true } },
-                lastContributor: { select: { id: true, name: true, email: true } },
-                resources: true
-            },
-            orderBy: { id: "asc" }
-        });
-        res.json(rows); return;
-    } catch {
-        res.status(500).json({ error: "Error al obtener materias" }); return;
-    }
-};
+// Formatter para transformar el output de subject
+function formatSubjectResponse(subject: any) {
+    return {
+        id: subject.id,
+        name: subject.name,
+        plan: subject.plan,
+        subjectInfo: subject.subjectInfo,
+        lastContributor: {
+            id: subject.lastContributor.id,
+            name: subject.lastContributor.name,
+            email: subject.lastContributor.email,
+            modifiedAt: subject.lastModification
+        },
+        resources: subject.resources
+    };
+}
 
 // GET /api/subject/:id
 export const getSubjectById: RequestHandler = async (req, res): Promise<void> => {
@@ -52,7 +48,8 @@ export const getSubjectById: RequestHandler = async (req, res): Promise<void> =>
             }
         });
         if (!row) { res.status(404).json({ error: "Materia no encontrada" }); return; }
-        res.json(row); return;
+        
+        res.json(formatSubjectResponse(row)); return;
     } catch {
         res.status(500).json({ error: "Error al obtener materia" }); return;
     }
@@ -64,9 +61,6 @@ export const createSubject: RequestHandler = async (req, res): Promise<void> => 
         name?: string; parentAcademyId?: number; plan?: string; subjectInfo?: any;
     };
 
-    //Hace falta añadir un unique en el nombre de la materia, no tiene tanto sentido que existan 2 iguales
-
-
     const userId = (req as AuthRequest).userId;
     if (!userId || !Number.isInteger(userId)) { res.status(401).json({ error: "No autenticado" }); return; }
 
@@ -75,14 +69,13 @@ export const createSubject: RequestHandler = async (req, res): Promise<void> => 
         res.status(400).json({ error: "name, parentAcademyId y plan (401|402|4040) son requeridos" }); return;
     }
 
-
     try {
         const created = await prisma.subject.create({
             data: {
                 name: name.trim(),
                 parentAcademy: { connect: { id: Number(parentAcademyId) } },
                 plan: planEnum as any,
-                subjectInfo: subjectInfo ?? null, // opcional
+                subjectInfo: subjectInfo ?? null,
                 lastContributor: { connect: { id: userId } },
             },
             include: {
@@ -91,7 +84,8 @@ export const createSubject: RequestHandler = async (req, res): Promise<void> => 
                 resources: true
             }
         });
-        res.status(201).json(created); return;
+        
+        res.status(201).json(formatSubjectResponse(created)); return;
     } catch (e: any) {
         if (e?.code === "P2003") { res.status(400).json({ error: "parentAcademyId o usuario inválido" }); return; }
         res.status(500).json({ error: "Error al crear materia" }); return;
@@ -109,7 +103,6 @@ export const updateSubject: RequestHandler = async (req, res): Promise<void> => 
     const userId = (req as AuthRequest).userId;
 
     if (!userId || !Number.isInteger(userId)) { res.status(401).json({ error: "No autenticado" }); return; }
-
 
     const data: any = {};
     if (typeof name === "string") data.name = name.trim();
@@ -135,7 +128,8 @@ export const updateSubject: RequestHandler = async (req, res): Promise<void> => 
                 resources: true
             }
         });
-        res.json(updated); return;
+        
+        res.json(formatSubjectResponse(updated)); return;
     } catch (e: any) {
         if (e?.code === "P2025") { res.status(404).json({ error: "Materia no encontrada" }); return; }
         if (e?.code === "P2003") { res.status(400).json({ error: "parentAcademyId o usuario inválido" }); return; }

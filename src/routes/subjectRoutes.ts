@@ -1,8 +1,7 @@
 // src/routes/subjectRoutes.ts
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth";
-import {
-  getSubjects,
+import { 
   getSubjectById,
   createSubject,
   updateSubject,
@@ -11,8 +10,7 @@ import {
 
 const router = Router();
 const base = "subject";
-
-router.get(`/${base}`, authMiddleware, getSubjects);
+ 
 router.get(`/${base}/:id`, authMiddleware, getSubjectById);
 router.post(`/${base}`, authMiddleware, createSubject);
 router.put(`/${base}/:id`, authMiddleware, updateSubject);
