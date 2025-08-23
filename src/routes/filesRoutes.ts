@@ -10,13 +10,15 @@ import {
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
+const base = "resource";
+
 // subir archivo a una materia
 router.post("/subject/:id/resource", upload.single("file"), uploadSubjectResource);
 
 // obtener URL firmada para descargar/ver
-router.get("/resource/:id/url", getResourceSignedUrl);
+router.get(`/${base}/:id`, getResourceSignedUrl);
 
 // eliminar recurso
-router.delete("/resource/:id", deleteResource);
+router.delete(`/${base}/:id`, deleteResource);
 
 export default router;
