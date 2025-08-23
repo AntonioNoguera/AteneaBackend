@@ -1,3 +1,4 @@
+
 import { RequestHandler } from "express";
 import prisma from "../prisma/prismaClient";
 import { s3 } from "../utils/s3";
@@ -11,9 +12,11 @@ function uniqueKey(originalName: string) {
   return `subjects/${ts}-${rnd}-${originalName.replace(/\s+/g, "_")}`;
 }
 
+const url_ttl_min = 5;
+
 /**
  * POST /api/subject/:id/resource
- * form-data: file (File), name? (string)
+ * form-data: file (File), name? (string), description? (string)
  */
 export const uploadSubjectResource: RequestHandler = async (req, res): Promise<void> => {
   try {
@@ -42,12 +45,11 @@ export const uploadSubjectResource: RequestHandler = async (req, res): Promise<v
         subjectId,
         name: (req.body?.name as string) || file.originalname,
         fileType: file.mimetype,
-        content: key,            // guardamos el S3 key
-        size: String(file.size), // tu schema usa String
+        description: (req.body?.description as string) || key, // Ahora guardamos el S3 key en description
+        size: String(file.size)
       },
     });
-
-    // Nota: bucket privado -> NO compartas URL pública directa
+ 
     res.status(201).json({ message: "Recurso creado", resource: created });
     return;
   } catch (err) {
@@ -70,8 +72,8 @@ export const getResourceSignedUrl: RequestHandler = async (req, res): Promise<vo
     if (!resource) { res.status(404).json({ error: "Recurso no encontrado" }); return; }
 
     const bucket = process.env.AWS_BUCKET_NAME!;
-    const key = resource.content; // aquí guardaste el S3 key
-    const expiresIn = 60 * 5; // 5 minutos (ajusta a tu gusto)
+    const key = resource.description;
+    const expiresIn = 60 * url_ttl_min;
 
     const url = await getSignedUrl(
       s3,
@@ -108,7 +110,7 @@ export const deleteResource: RequestHandler = async (req, res): Promise<void> =>
 
     await s3.send(new DeleteObjectCommand({
       Bucket: process.env.AWS_BUCKET_NAME!,
-      Key: item.content,
+      Key: item.description, // Ahora leemos el S3 key desde description
     }));
 
     await prisma.resource.delete({ where: { id } });

@@ -2,6 +2,7 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth";
 import { 
+  getAllSubjects,
   getSubjectById,
   createSubject,
   updateSubject,
@@ -10,7 +11,8 @@ import {
 
 const router = Router();
 const base = "subject";
- 
+
+router.get(`/${base}`, getAllSubjects);
 router.get(`/${base}/:id`, authMiddleware, getSubjectById);
 router.post(`/${base}`, authMiddleware, createSubject);
 router.put(`/${base}/:id`, authMiddleware, updateSubject);

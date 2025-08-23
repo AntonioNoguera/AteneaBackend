@@ -151,3 +151,26 @@ export const deleteSubject: RequestHandler = async (req, res): Promise<void> => 
         res.status(500).json({ error: "Error al eliminar materia" }); return;
     }
 };
+
+// GET /api/subject
+export const getAllSubjects: RequestHandler = async (req, res): Promise<void> => {
+    
+    const userId = (req as AuthRequest).userId;
+    if (!userId || !Number.isInteger(userId)) { res.status(401).json({ error: "No autenticado" }); return; }
+
+    try {
+        const subjects = await prisma.subject.findMany({
+            include: {
+                parentAcademy: { select: { id: true, name: true } },
+                lastContributor: { select: { id: true, name: true, email: true } },
+                resources: true
+            },
+            orderBy: { name: 'asc' } // Ordenar alfabéticamente por nombre
+        });
+        
+        const formattedSubjects = subjects.map(subject => formatSubjectResponse(subject));
+        res.json(formattedSubjects); return;
+    } catch {
+        res.status(500).json({ error: "Error al obtener materias" }); return;
+    }
+};
