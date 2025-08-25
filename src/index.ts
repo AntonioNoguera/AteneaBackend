@@ -17,6 +17,12 @@ import { authMiddleware } from './middleware/auth';
 dotenv.config();
 
 const app = express();
+
+import * as swaggerUI from 'swagger-ui-express';
+import * as swaggerDocumentation from './swagger-output.json';
+
+app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocumentation));
+
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
