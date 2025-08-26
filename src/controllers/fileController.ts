@@ -20,7 +20,7 @@ const url_ttl_min = 5;
  */
 export const uploadSubjectResource: RequestHandler = async (req, res): Promise<void> => {
   try {
-    const subjectId = Number(req.params.id);
+    const subjectId = Number(req.params.forSubject);
     const file = req.file as Express.Multer.File | undefined;
     const bucket = process.env.AWS_BUCKET_NAME!;
     const region = process.env.AWS_REGION!;

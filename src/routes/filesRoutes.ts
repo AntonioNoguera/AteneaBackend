@@ -13,7 +13,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 const base = "resource";
 
 // subir archivo a una materia
-router.post("/subject/:id/resource", upload.single("file"), uploadSubjectResource);
+router.post(`/${base}/:forSubject`, upload.single("file"), uploadSubjectResource);
 
 // obtener URL firmada para descargar/ver
 router.get(`/${base}/:id`, getResourceSignedUrl);

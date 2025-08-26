@@ -13,7 +13,7 @@ import fileRoutes from './routes/filesRoutes';
 
 import { errorHandler } from "./middleware/errorHandler";
 import { authMiddleware } from './middleware/auth';
- 
+
 dotenv.config();
 
 const app = express();
