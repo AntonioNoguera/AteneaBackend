@@ -2,6 +2,7 @@
 import { RequestHandler } from "express";
 import prisma from "../prisma/prismaClient";
 import { signAccessToken } from "../utils/JWT";
+import { user_role } from "@prisma/client";
 
 export const login: RequestHandler = async (req, res): Promise<void> => {
   const { email, password } = req.body as { email?: string; password?: string };
@@ -51,6 +52,34 @@ export const login: RequestHandler = async (req, res): Promise<void> => {
     res.status(500).json({ 
       error: "3-> Error al iniciar sesión",
       reason: process.env.NODE_ENV === "development" ? e.message : undefined
+    });
+  }
+};
+
+export const signUp: RequestHandler = async (req, res) => { 
+
+  const { name, email, password, role } = req.body as {
+     name: string; email: string; password: string; role?: keyof typeof user_role;
+   };
+
+  try {
+    const user = await prisma.user.create({
+      data: { 
+        name, 
+        email, 
+        password, 
+        role: (role ?? "USER") as user_role 
+      },
+    });
+
+    res.status(201).json(user);
+  } catch (error: any) {
+    console.error("[createUser]", error);
+
+    res.status(500).json({
+      error: "Error al crear usuario",
+      code: error?.code,
+      message: error?.message
     });
   }
 };

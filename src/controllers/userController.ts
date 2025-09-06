@@ -30,34 +30,6 @@ export const getUserById: RequestHandler = async (req, res) => {
   }
 };
 
-export const createUser: RequestHandler = async (req, res) => { 
-
-  const { name, email, password, role } = req.body as {
-     name: string; email: string; password: string; role?: keyof typeof user_role;
-   };
-
-  try {
-    const user = await prisma.user.create({
-      data: { 
-        name, 
-        email, 
-        password, 
-        role: (role ?? "USER") as user_role 
-      },
-    });
-
-    res.status(201).json(user);
-  } catch (error: any) {
-    console.error("[createUser]", error);
-
-    res.status(500).json({
-      error: "Error al crear usuario",
-      code: error?.code,
-      message: error?.message
-    });
-  }
-};
-
 export const updateUser: RequestHandler = async (req, res) => {
   const { id } = req.params;
   const { name, email, password, role } = req.body;
